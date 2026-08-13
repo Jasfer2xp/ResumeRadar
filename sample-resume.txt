@@ -1,0 +1,26 @@
+John Doe
+Junior Web Developer
+
+Bachelor of Science in Information Technology
+University of the Philippines
+
+Skills:
+PHP
+Laravel
+MySQL
+JavaScript
+HTML
+CSS
+Git
+
+Experience:
+Junior Web Developer
+ABC Company | 2023 - Present
+- Developed web applications using PHP and Laravel
+- Built REST APIs with MySQL database
+- Collaborated using Git version control
+
+Education:
+Bachelor of Science in Information Technology
+
+Location: Manila, Philippines

@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String     @id @default(cuid())
+  email         String?    @unique
+  passwordHash  String?    @map("password_hash")
+  authProvider  String?    @map("auth_provider")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+  resumes       Resume[]
+  savedJobs     SavedJob[]
+
+  @@map("users")
+}
+
+model Resume {
+  id              String            @id @default(cuid())
+  userId          String?           @map("user_id")
+  filename        String
+  fileType        String            @map("file_type")
+  storagePath     String            @map("storage_path")
+  extractedText   String?           @map("extracted_text")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  candidateProfile CandidateProfile?
+  jobMatches      JobMatch[]
+  searchRuns      SearchRun[]
+
+  @@map("resumes")
+}
+
+model CandidateProfile {
+  id               String   @id @default(cuid())
+  resumeId         String   @unique @map("resume_id")
+  jobTitles        Json     @map("job_titles")
+  skills           Json
+  inferredSkills   Json     @map("inferred_skills")
+  experienceLevel  String   @map("experience_level")
+  education        Json
+  locations        Json
+  preferences      Json
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  resume           Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@map("candidate_profiles")
+}
+
+model JobSource {
+  id           String   @id @default(cuid())
+  name         String
+  baseUrl      String   @map("base_url")
+  providerType String   @map("provider_type")
+  createdAt    DateTime @default(now()) @map("created_at")
+  jobs         Job[]
+
+  @@map("job_sources")
+}
+
+model Job {
+  id              String     @id @default(cuid())
+  sourceId        String?    @map("source_id")
+  externalId      String?    @map("external_id")
+  title           String
+  company         String?
+  location        String?
+  workType        String?    @map("work_type")
+  employmentType  String?    @map("employment_type")
+  salaryMin       Float?     @map("salary_min")
+  salaryMax       Float?     @map("salary_max")
+  currency        String?
+  description     String?
+  requirements    Json
+  jobUrl          String     @map("job_url")
+  canonicalUrl    String?    @map("canonical_url")
+  postedAt        DateTime?  @map("posted_at")
+  firstSeenAt     DateTime   @default(now()) @map("first_seen_at")
+  lastVerifiedAt  DateTime?  @map("last_verified_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  source          JobSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  jobMatches      JobMatch[]
+  savedJobs       SavedJob[]
+
+  @@unique([canonicalUrl])
+  @@map("jobs")
+}
+
+model JobMatch {
+  id                       String   @id @default(cuid())
+  resumeId                 String   @map("resume_id")
+  jobId                    String   @map("job_id")
+  matchScore               Float    @map("match_score")
+  matchedSkills            Json     @map("matched_skills")
+  missingRequiredSkills    Json     @map("missing_required_skills")
+  missingPreferredSkills   Json     @map("missing_preferred_skills")
+  experienceCompatibility  String?  @map("experience_compatibility")
+  aiExplanation            String?  @map("ai_explanation")
+  scoreBreakdown           Json?    @map("score_breakdown")
+  createdAt                DateTime @default(now()) @map("created_at")
+  resume                   Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  job                      Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([resumeId, jobId])
+  @@map("job_matches")
+}
+
+model SavedJob {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  jobId     String   @map("job_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+  @@map("saved_jobs")
+}
+
+model SearchRun {
+  id            String    @id @default(cuid())
+  resumeId      String    @map("resume_id")
+  status        String    @default("pending")
+  queries       Json
+  resultsFound  Int       @default(0) @map("results_found")
+  currentStep   String?   @map("current_step")
+  startedAt     DateTime  @default(now()) @map("started_at")
+  completedAt   DateTime? @map("completed_at")
+  error         String?
+  resume        Resume    @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@map("search_runs")
+}

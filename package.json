@@ -1,0 +1,23 @@
+{
+  "name": "resumeradar",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w @resumeradar/api\" \"npm run dev -w @resumeradar/web\"",
+    "dev:api": "npm run dev -w @resumeradar/api",
+    "dev:web": "npm run dev -w @resumeradar/web",
+    "build": "npm run build -w @resumeradar/shared && npm run build -w @resumeradar/api && npm run build -w @resumeradar/web",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prisma": "^6.5.0",
+    "typescript": "^5.8.2"
+  }
+}
