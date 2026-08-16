@@ -4,6 +4,7 @@ import {
   calculateDeterministicScore,
   combineScores,
   deduplicateSearchResults,
+  filterIndividualJobResults,
   generateSearchQueries,
   prioritizeJobResults,
 } from '@resumeradar/shared';
@@ -118,7 +119,8 @@ export async function runSearchPipeline(resumeId: string, searchRunId: string): 
     }
 
     const deduped = deduplicateSearchResults(allResults);
-    const prioritized = prioritizeJobResults(deduped).slice(0, config.maxSearchResults);
+    const individualJobs = filterIndividualJobResults(deduped);
+    const prioritized = prioritizeJobResults(individualJobs).slice(0, config.maxSearchResults);
     const candidateJobs = prioritized.slice(0, config.maxJobsToMatch);
 
     await updateStep('analyzing_jobs', 'matching');
@@ -280,28 +282,28 @@ export async function getSearchResults(resumeId: string): Promise<{
       }
     : null;
 
-  const jobs: JobWithMatch[] = matches.map((m) => ({
-    id: m.job.id,
-    title: m.job.title,
-    company: m.job.company,
-    location: m.job.location,
-    work_type: m.job.workType,
-    employment_type: m.job.employmentType,
-    salary_min: m.job.salaryMin,
-    salary_max: m.job.salaryMax,
-    currency: m.job.currency,
-    description: m.job.description,
-    requirements: m.job.requirements as string[],
-    job_url: m.job.jobUrl,
+  const jobs: JobWithMatch[] = matches.map((match) => ({
+    id: match.job.id,
+    title: match.job.title,
+    company: match.job.company,
+    location: match.job.location,
+    work_type: match.job.workType,
+    employment_type: match.job.employmentType,
+    salary_min: match.job.salaryMin,
+    salary_max: match.job.salaryMax,
+    currency: match.job.currency,
+    description: match.job.description,
+    requirements: match.job.requirements as string[],
+    job_url: match.job.jobUrl,
     source_name: 'Web',
-    posted_at: m.job.postedAt?.toISOString() ?? null,
-    match_score: m.matchScore,
-    matched_skills: m.matchedSkills as string[],
-    missing_required_skills: m.missingRequiredSkills as string[],
-    missing_preferred_skills: m.missingPreferredSkills as string[],
-    experience_compatibility: m.experienceCompatibility,
-    ai_explanation: m.aiExplanation,
-    score_breakdown: m.scoreBreakdown as JobWithMatch['score_breakdown'],
+    posted_at: match.job.postedAt?.toISOString() ?? null,
+    match_score: match.matchScore,
+    matched_skills: match.matchedSkills as string[],
+    missing_required_skills: match.missingRequiredSkills as string[],
+    missing_preferred_skills: match.missingPreferredSkills as string[],
+    experience_compatibility: match.experienceCompatibility,
+    ai_explanation: match.aiExplanation,
+    score_breakdown: match.scoreBreakdown as JobWithMatch['score_breakdown'],
   }));
 
   return {

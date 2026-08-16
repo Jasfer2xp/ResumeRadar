@@ -18,6 +18,7 @@ export {
   generateSearchQueries,
   deduplicateSearchResults,
   isIndividualJobUrl,
+  filterIndividualJobResults,
   prioritizeJobResults,
 } from './scoring.js';
 

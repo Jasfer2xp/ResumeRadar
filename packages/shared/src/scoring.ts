@@ -206,8 +206,8 @@ export function generateSearchQueries(profile: CandidateProfile): string[] {
 
   for (const title of profile.job_titles.slice(0, 5)) {
     for (const loc of locations.slice(0, 3)) {
-      queries.add(`"${title}" ${loc} job`);
-      queries.add(`"${title}" ${loc} hiring`);
+      queries.add(`"${title}" ${loc} job posting apply`);
+      queries.add(`"${title}" ${loc} hiring site:linkedin.com/jobs/view`);
     }
   }
 
@@ -256,13 +256,63 @@ export function isIndividualJobUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
     const path = parsed.pathname.toLowerCase();
-    const searchPatterns = ['/search', '?q=', '/results', '/jobs/search', 'search?'];
-    if (searchPatterns.some((p) => url.toLowerCase().includes(p))) return false;
-    const jobPatterns = ['/job/', '/jobs/', '/careers/', '/position/', '/vacancy/', '/opening/'];
-    return jobPatterns.some((p) => path.includes(p)) || /\d{4,}/.test(path);
+    const full = url.toLowerCase();
+    const segments = path.split('/').filter(Boolean);
+
+    const rejectPatterns = [
+      '/search',
+      '?q=',
+      '/results',
+      '/jobs/search',
+      'search?',
+      '/jobs#',
+      '/remote-jobs$',
+      '/remote-.*-jobs$',
+      'freelancer.com/jobs/',
+      'indeed.com/jobs?',
+      'glassdoor.com/job/jobs',
+      'linkedin.com/jobs/search',
+      'linkedin.com/jobs/collections',
+      'linkedin.com/jobs/?',
+    ];
+    if (rejectPatterns.some((pattern) => {
+      if (pattern.startsWith('/') && pattern.endsWith('$')) {
+        return new RegExp(`${pattern.replace(/\$/g, '')}$`).test(path);
+      }
+      return full.includes(pattern);
+    })) {
+      return false;
+    }
+
+    if (segments.length === 0) return false;
+    if (
+      segments.length === 1 &&
+      ['jobs', 'careers', 'job-board', 'remote-jobs', 'php', 'laravel'].includes(segments[0])
+    ) {
+      return false;
+    }
+
+    const jobPatterns = [
+      '/jobs/view/',
+      '/job/',
+      '/careers/job/',
+      '/position/',
+      '/vacancy/',
+      '/opening/',
+      '/job-board/',
+      '/remote-jobs/remote-',
+      '/apply/',
+    ];
+    if (jobPatterns.some((pattern) => path.includes(pattern))) return true;
+
+    return /\d{5,}/.test(path);
   } catch {
     return false;
   }
+}
+
+export function filterIndividualJobResults<T extends { url: string }>(results: T[]): T[] {
+  return results.filter((result) => isIndividualJobUrl(result.url));
 }
 
 export function prioritizeJobResults<T extends { url: string }>(results: T[]): T[] {

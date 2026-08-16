@@ -7,7 +7,7 @@ import { prisma } from '../database/client.js';
 import { validateFile, extractText } from '../services/resume/extractor.js';
 import { runSearchPipeline, getSearchResults } from '../services/search/pipeline.js';
 import { routeParam } from '../utils/routeParam.js';
-import { SEARCH_PROGRESS_STEPS } from '@resumeradar/shared';
+import { SEARCH_PROGRESS_STEPS, type SearchProgressStep } from '@resumeradar/shared';
 mkdirSync(config.uploadDir, { recursive: true });
 
 const storage = multer.diskStorage({
@@ -124,12 +124,12 @@ searchRouter.get('/:id/status', async (req: Request, res: Response) => {
     return;
   }
 
-  const stepOrder = SEARCH_PROGRESS_STEPS.map((s) => s.id);
+  const stepOrder = SEARCH_PROGRESS_STEPS.map((s: Omit<SearchProgressStep, 'status'>) => s.id);
   const currentIdx = searchRun.currentStep
     ? stepOrder.indexOf(searchRun.currentStep)
     : -1;
 
-  const steps = SEARCH_PROGRESS_STEPS.map((step, idx) => {
+  const steps = SEARCH_PROGRESS_STEPS.map((step: Omit<SearchProgressStep, 'status'>, idx: number) => {
     let status: 'pending' | 'in_progress' | 'completed' | 'failed' = 'pending';
     if (searchRun.status === 'failed' && idx === currentIdx) status = 'failed';
     else if (searchRun.status === 'completed' || idx < currentIdx) status = 'completed';

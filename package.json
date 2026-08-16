@@ -10,7 +10,8 @@
     "dev": "concurrently \"npm run dev -w @resumeradar/api\" \"npm run dev -w @resumeradar/web\"",
     "dev:api": "npm run dev -w @resumeradar/api",
     "dev:web": "npm run dev -w @resumeradar/web",
-    "build": "npm run build -w @resumeradar/shared && npm run build -w @resumeradar/api && npm run build -w @resumeradar/web",
+    "build": "npm run db:generate && npm run build -w @resumeradar/shared && npm run build -w @resumeradar/api && npm run build -w @resumeradar/web",
+    "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev"
