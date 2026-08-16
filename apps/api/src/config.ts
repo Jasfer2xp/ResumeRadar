@@ -21,5 +21,5 @@ export const config = {
   maxSearchResults: parseInt(process.env.MAX_SEARCH_RESULTS ?? '50', 10),
   maxJobsToMatch: parseInt(process.env.MAX_JOBS_TO_MATCH ?? '20', 10),
   topResults: parseInt(process.env.TOP_RESULTS ?? '15', 10),
-  uploadDir: resolve(__dirname, '../uploads'),
+  uploadDir: process.env.VERCEL ? '/tmp/uploads' : resolve(__dirname, '../uploads'),
 };
