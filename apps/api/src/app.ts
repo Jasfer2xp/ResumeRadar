@@ -6,10 +6,16 @@ import { resumeRouter, searchRouter, jobsRouter } from './routes/index.js';
 
 const app = express();
 
+// Required on Vercel/reverse proxies so express-rate-limit can read X-Forwarded-For
+if (process.env.VERCEL || config.nodeEnv === 'production') {
+  app.set('trust proxy', 1);
+}
+
 const allowedOrigins = [
   config.appUrl,
   ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
-];
+  ...(process.env.VERCEL_BRANCH_URL ? [`https://${process.env.VERCEL_BRANCH_URL}`] : []),
+].filter(Boolean);
 
 app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
